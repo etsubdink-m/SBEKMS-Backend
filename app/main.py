@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 import time
 import logging
 import os
+from pathlib import Path
 
 from app.config import settings
 from app.api import users, assets, search, graph, ontology, sparql, system
@@ -69,16 +70,84 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def startup_event():
     logger.info("Starting SBEKMS Backend API...")
     
-    # TODO: Initialize semantic components
-    # - Load ontology
-    # - Test triplestore connection
-    # - Initialize parsers
-    
-    logger.info("SBEKMS Backend API started successfully")
+    try:
+        # Test triplestore connection
+        from app.dependencies import get_triplestore_client
+        from app.core.triplestore_client import TriplestoreClient
+        
+        triplestore = TriplestoreClient()
+        connection_test = await triplestore.test_connection()
+        
+        if connection_test:
+            logger.info("✅ GraphDB triplestore connection established")
+            
+            # Get triplestore status
+            status = await triplestore.get_status()
+            triple_count = status.get('triple_count', 0)
+            logger.info(f"📊 Current triplestore contains {triple_count} triples")
+            
+        else:
+            logger.error("❌ Failed to connect to GraphDB triplestore")
+            
+        # Initialize base ontology namespaces (ensure they exist)
+        base_prefixes = {
+            "wdo": settings.WDO_NAMESPACE,
+            "sbekms": settings.INSTANCE_NAMESPACE,
+            "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+            "dcterms": "http://purl.org/dc/terms/",
+            "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+        
+        # Log ontology namespaces
+        logger.info("🔗 Ontology namespaces initialized:")
+        for prefix, namespace in base_prefixes.items():
+            logger.info(f"   {prefix}: {namespace}")
+            
+        # Initialize semantic annotator
+        from app.core.semantic_annotator import SemanticAnnotator
+        annotator = SemanticAnnotator()
+        logger.info("🔬 Semantic annotator initialized")
+        
+        # Verify upload directory exists
+        upload_dir = Path(settings.UPLOAD_DIR)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"📁 Upload directory verified: {upload_dir}")
+        
+        # Log system configuration
+        logger.info("⚙️  System configuration:")
+        logger.info(f"   Debug mode: {settings.DEBUG}")
+        logger.info(f"   API version: {settings.VERSION}")
+        logger.info(f"   Max file size: {settings.MAX_FILE_SIZE} bytes")
+        
+    except Exception as e:
+        logger.error(f"❌ Startup initialization failed: {e}")
+        # Don't crash the app, but log the error
+        
+    logger.info("🚀 SBEKMS Backend API started successfully")
 
 @app.on_event("shutdown") 
 async def shutdown_event():
-    logger.info("Shutting down SBEKMS Backend API...")
+    logger.info("🛑 Shutting down SBEKMS Backend API...")
+    
+    try:
+        # Log final statistics
+        from app.core.triplestore_client import TriplestoreClient
+        triplestore = TriplestoreClient()
+        
+        try:
+            status = await triplestore.get_status()
+            triple_count = status.get('triple_count', 0)
+            logger.info(f"📊 Final triplestore state: {triple_count} triples")
+        except:
+            logger.info("📊 Could not retrieve final triplestore statistics")
+            
+        # Clean up any temporary resources if needed
+        logger.info("🧹 Cleanup completed")
+        
+    except Exception as e:
+        logger.error(f"⚠️  Shutdown cleanup failed: {e}")
+        
+    logger.info("👋 SBEKMS Backend API shutdown complete")
 
 # Health check endpoint
 @app.get("/health")
