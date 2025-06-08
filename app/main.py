@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import time
 import logging
+import os
 
 from app.config import settings
 from app.api import users, assets, search, graph, ontology, sparql, system
@@ -19,6 +22,17 @@ app = FastAPI(
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
 )
+
+# Mount static files (add this after the app creation but before middleware)
+if settings.DEBUG:
+    # Mount static files for development
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    
+    # Serve the graph visualizer
+    @app.get("/visualizer")
+    async def serve_visualizer():
+        """Serve the knowledge graph visualizer"""
+        return FileResponse("static/graph-visualizer.html")
 
 # CORS middleware
 app.add_middleware(

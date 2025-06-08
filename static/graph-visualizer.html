@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBEKMS Knowledge Graph Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        input {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .graph-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        #graph {
+            width: 100%;
+            height: 700px;
+            border-radius: 10px;
+            cursor: grab;
+        }
+
+        #graph:active {
+            cursor: grabbing;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+            font-size: 12px;
+            max-width: 250px;
+            z-index: 1000;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: rgba(0, 255, 0, 0.1);
+            color: #51cf66;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 SBEKMS Knowledge Graph Visualizer</h1>
+            <p>Interactive exploration of your semantic knowledge base</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Graph Type:</label>
+                <button onclick="loadGraph('full')">🌍 Full Graph</button>
+                <button onclick="loadGraph('neighborhood')">🔍 Neighborhood</button>
+                <button onclick="loadGraph('cluster')">🎯 Clusters</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Entity:</label>
+                <input type="text" id="entityInput" placeholder="Enter entity URI" style="width: 300px;">
+                <button onclick="exploreEntity()">🔎 Explore</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Controls:</label>
+                <button onclick="togglePhysics()">⚡ Toggle Physics</button>
+                <button onclick="resetZoom()">🎯 Reset View</button>
+                <button onclick="exportGraph()">💾 Export</button>
+            </div>
+        </div>
+
+        <div class="graph-container">
+            <div id="loading" class="loading" style="display: none;">Loading graph data...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;"></div>
+            <svg id="graph"></svg>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-value" id="nodeCount">0</div>
+                <div>Nodes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="edgeCount">0</div>
+                <div>Edges</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgDegree">0</div>
+                <div>Avg Degree</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="density">0</div>
+                <div>Density</div>
+            </div>
+        </div>
+
+        <div class="legend" id="legend" style="display: none;"></div>
+    </div>
+
+    <div class="tooltip" id="tooltip" style="display: none;"></div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:8000/api/graph';
+        const width = 1200;
+        const height = 700;
+
+        // Color schemes for different node types
+        const colors = {
+            'Resource': '#4CAF50',
+            'Class': '#FF9800', 
+            'Property': '#2196F3',
+            'DigitalInformationCarrier': '#9C27B0',
+            'SourceCodeFile': '#607D8B',
+            'DocumentationFile': '#795548',
+            'ConfigurationFile': '#E91E63',
+            'Tag': '#00BCD4',
+            'PythonSourceCodeFile': '#3776ab',
+            'MarkdownFile': '#083fa1'
+        };
+
+        // D3.js setup
+        const svg = d3.select('#graph')
+            .attr('width', width)
+            .attr('height', height);
+
+        const g = svg.append('g');
+
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 4])
+            .on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            });
+
+        svg.call(zoom);
+
+        // Force simulation
+        let simulation = d3.forceSimulation()
+            .force('link', d3.forceLink().id(d => d.id).distance(100))
+            .force('charge', d3.forceManyBody().strength(-300))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collision', d3.forceCollide().radius(30));
+
+        let physicsEnabled = true;
+        let currentData = null;
+
+        // Main functions
+        async function loadGraph(queryType, entity = null) {
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const requestBody = {
+                    query_type: queryType,
+                    depth: 2,
+                    max_nodes: 100
+                };
+
+                if (entity && queryType === 'neighborhood') {
+                    requestBody.center_entity = entity;
+                }
+
+                console.log('Loading graph with:', requestBody);
+
+                const response = await fetch(`${API_BASE}/explore`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    currentData = data;
+                    visualizeGraph(data);
+                    updateStats(data);
+                    updateLegend(data);
+                    showSuccess(`Loaded ${data.graph.nodes.length} nodes and ${data.graph.edges.length} edges`);
+                } else {
+                    throw new Error(data.message || 'Unknown API error');
+                }
+
+            } catch (error) {
+                console.error('Error loading graph:', error);
+                showError(`Failed to load graph: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function visualizeGraph(data) {
+            // Clear previous graph
+            g.selectAll('*').remove();
+
+            if (!data.graph || !data.graph.nodes.length) {
+                showError('No graph data to display');
+                return;
+            }
+
+            const nodes = data.graph.nodes.map(d => ({
+                ...d,
+                x: Math.random() * width,
+                y: Math.random() * height
+            }));
+
+            const links = data.graph.edges.map(d => ({
+                source: d.source,
+                target: d.target,
+                relationship: d.relationship,
+                ...d
+            }));
+
+            // Create links
+            const link = g.append('g')
+                .attr('class', 'links')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('stroke-width', 2)
+                .attr('marker-end', 'url(#arrowhead)');
+
+            // Add arrowhead marker
+            const defs = svg.append('defs');
+            defs.append('marker')
+                .attr('id', 'arrowhead')
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 20)
+                .attr('refY', 0)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('fill', '#999');
+
+            // Create link labels
+            const linkLabels = g.append('g')
+                .attr('class', 'link-labels')
+                .selectAll('text')
+                .data(links)
+                .join('text')
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '10px')
+                .attr('fill', '#666')
+                .attr('background', 'white')
+                .text(d => d.relationship);
+
+            // Create nodes
+            const node = g.append('g')
+                .attr('class', 'nodes')
+                .selectAll('circle')
+                .data(nodes)
+                .join('circle')
+                .attr('r', d => d.type === 'Tag' ? 8 : 12)
+                .attr('fill', d => colors[d.type] || '#888')
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 2)
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            // Create node labels
+            const nodeLabels = g.append('g')
+                .attr('class', 'node-labels')
+                .selectAll('text')
+                .data(nodes)
+                .join('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '.35em')
+                .attr('dx', 20)
+                .attr('font-size', '12px')
+                .attr('font-weight', 'bold')
+                .attr('fill', '#333')
+                .text(d => d.label.length > 15 ? d.label.substring(0, 15) + '...' : d.label);
+
+            // Add tooltips and interactions
+            node.on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip)
+                .on('click', nodeClick);
+
+            // Update simulation
+            simulation.nodes(nodes);
+            simulation.force('link').links(links);
+
+            if (physicsEnabled) {
+                simulation.alpha(1).restart();
+            }
+
+            // Simulation tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                linkLabels
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+
+                node
+                    .attr('cx', d => d.x = Math.max(12, Math.min(width - 12, d.x)))
+                    .attr('cy', d => d.y = Math.max(12, Math.min(height - 12, d.y)));
+
+                nodeLabels
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+        }
+
+        // Event handlers
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = d3.select('#tooltip');
+            const properties = d.properties || {};
+            
+            let propertiesHtml = '';
+            Object.entries(properties).forEach(([key, value]) => {
+                if (key !== 'uri' && key !== 'full_type') {
+                    propertiesHtml += `<br><strong>${key}:</strong> ${value}`;
+                }
+            });
+
+            tooltip.style('display', 'block')
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px')
+                .html(`
+                    <strong>${d.label}</strong><br>
+                    <strong>Type:</strong> ${d.type}<br>
+                    <strong>URI:</strong> ${d.id}${propertiesHtml}
+                `);
+        }
+
+        function hideTooltip() {
+            d3.select('#tooltip').style('display', 'none');
+        }
+
+        function nodeClick(event, d) {
+            // Load neighborhood of clicked node
+            document.getElementById('entityInput').value = d.id;
+            exploreEntity();
+        }
+
+        function exploreEntity() {
+            const entity = document.getElementById('entityInput').value.trim();
+            if (entity) {
+                loadGraph('neighborhood', entity);
+            } else {
+                showError('Please enter an entity URI');
+            }
+        }
+
+        function togglePhysics() {
+            physicsEnabled = !physicsEnabled;
+            if (physicsEnabled) {
+                simulation.alpha(1).restart();
+                showSuccess('Physics enabled');
+            } else {
+                simulation.stop();
+                showSuccess('Physics disabled');
+            }
+        }
+
+        function resetZoom() {
+            svg.transition().duration(750).call(
+                zoom.transform,
+                d3.zoomIdentity
+            );
+            showSuccess('View reset');
+        }
+
+        function exportGraph() {
+            if (currentData) {
+                const dataStr = JSON.stringify(currentData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'sbekms-graph-data.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                showSuccess('Graph data exported');
+            } else {
+                showError('No graph data to export');
+            }
+        }
+
+        // UI helper functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        function updateStats(data) {
+            if (data.analytics) {
+                document.getElementById('nodeCount').textContent = data.analytics.total_nodes;
+                document.getElementById('edgeCount').textContent = data.analytics.total_edges;
+                document.getElementById('avgDegree').textContent = data.analytics.avg_degree;
+                document.getElementById('density').textContent = data.analytics.density;
+                document.getElementById('stats').style.display = 'flex';
+            }
+        }
+
+        function updateLegend(data) {
+            const legendDiv = document.getElementById('legend');
+            if (data.analytics && data.analytics.node_types) {
+                const legendItems = Object.entries(data.analytics.node_types).map(([type, count]) => `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: ${colors[type] || '#888'}"></div>
+                        <span>${type} (${count})</span>
+                    </div>
+                `).join('');
+                
+                legendDiv.innerHTML = legendItems;
+                legendDiv.style.display = 'flex';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial graph
+            loadGraph('full');
+            showSuccess('SBEKMS Graph Visualizer loaded');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && event.target.id === 'entityInput') {
+                exploreEntity();
+            }
+            if (event.key === 'r' && event.ctrlKey) {
+                event.preventDefault();
+                resetZoom();
+            }
+            if (event.key === 'f' && event.ctrlKey) {
+                event.preventDefault();
+                loadGraph('full');
+            }
+            if (event.key === 'p' && event.ctrlKey) {
+                event.preventDefault();
+                togglePhysics();
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -66,3 +66,4 @@ docker-compose.override.yml
 .env.development.local
 .env.test.local
 .env.production.local
+*.code-workspace
