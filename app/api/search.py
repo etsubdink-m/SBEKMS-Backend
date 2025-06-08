@@ -132,8 +132,8 @@ class UnifiedSearchService:
         WHERE {{
             ?asset a wdo:DigitalInformationCarrier .
             ?asset rdfs:label ?fileName .
-            ?asset rdf:type ?type .
             
+            OPTIONAL {{ ?asset rdf:type ?type }}
             OPTIONAL {{ ?asset dcterms:title ?title }}
             OPTIONAL {{ ?asset dcterms:description ?description }}
             OPTIONAL {{ ?asset wdo:hasFileSize ?fileSize }}
@@ -142,23 +142,21 @@ class UnifiedSearchService:
             OPTIONAL {{ ?asset dcterms:created ?created }}
             OPTIONAL {{ ?asset wdo:hasTag ?tagURI . ?tagURI rdfs:label ?tag }}
             
-            # Semantic matching using ontology classes and type labels
-            OPTIONAL {{ ?type rdfs:label ?typeLabel }}
-            
-            # Text matching across multiple fields
+            # More flexible text matching across multiple fields
             FILTER (
                 CONTAINS(LCASE(?fileName), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?title)), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?description)), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?typeLabel)), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?tag)), LCASE("{query_text}"))
+                (BOUND(?title) && CONTAINS(LCASE(STR(?title)), LCASE("{query_text}"))) ||
+                (BOUND(?description) && CONTAINS(LCASE(STR(?description)), LCASE("{query_text}"))) ||
+                (BOUND(?tag) && CONTAINS(LCASE(STR(?tag)), LCASE("{query_text}"))) ||
+                (BOUND(?type) && CONTAINS(LCASE(STR(?type)), LCASE("{query_text}"))) ||
+                (BOUND(?mimeType) && CONTAINS(LCASE(STR(?mimeType)), LCASE("{query_text}")))
             )
         }}
         ORDER BY DESC(
             (IF(CONTAINS(LCASE(?fileName), LCASE("{query_text}")), 4, 0)) +
-            (IF(CONTAINS(LCASE(STR(?title)), LCASE("{query_text}")), 3, 0)) +
-            (IF(CONTAINS(LCASE(STR(?description)), LCASE("{query_text}")), 2, 0)) +
-            (IF(CONTAINS(LCASE(STR(?typeLabel)), LCASE("{query_text}")), 1, 0))
+            (IF(BOUND(?title) && CONTAINS(LCASE(STR(?title)), LCASE("{query_text}")), 3, 0)) +
+            (IF(BOUND(?description) && CONTAINS(LCASE(STR(?description)), LCASE("{query_text}")), 2, 0)) +
+            (IF(BOUND(?tag) && CONTAINS(LCASE(STR(?tag)), LCASE("{query_text}")), 1, 0))
         ) ?fileName
         LIMIT {limit} OFFSET {offset}
         """
@@ -177,8 +175,8 @@ class UnifiedSearchService:
         WHERE {{
             ?asset a wdo:DigitalInformationCarrier .
             ?asset rdfs:label ?fileName .
-            ?asset rdf:type ?type .
             
+            OPTIONAL {{ ?asset rdf:type ?type }}
             OPTIONAL {{ ?asset dcterms:title ?title }}
             OPTIONAL {{ ?asset dcterms:description ?description }}
             OPTIONAL {{ ?asset wdo:hasFileSize ?fileSize }}
@@ -187,11 +185,11 @@ class UnifiedSearchService:
             OPTIONAL {{ ?asset dcterms:created ?created }}
             OPTIONAL {{ ?asset wdo:hasTag ?tagURI . ?tagURI rdfs:label ?tag }}
             
-            # Simple text matching
+            # Simple text matching with proper bounds checking
             FILTER (
                 CONTAINS(LCASE(?fileName), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?title)), LCASE("{query_text}")) ||
-                CONTAINS(LCASE(STR(?description)), LCASE("{query_text}"))
+                (BOUND(?title) && CONTAINS(LCASE(STR(?title)), LCASE("{query_text}"))) ||
+                (BOUND(?description) && CONTAINS(LCASE(STR(?description)), LCASE("{query_text}")))
             )
         }}
         ORDER BY ?fileName

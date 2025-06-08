@@ -1,0 +1,59 @@
+{
+  "project": "SBEKMS Demo",
+  "version": "1.0.0",
+  "description": "Configuration for semantic knowledge management system demonstration",
+  "metadata": {
+    "created": "2024-01-15",
+    "author": "Demo User",
+    "purpose": "Academic demonstration of semantic web technologies"
+  },
+  "settings": {
+    "debug": true,
+    "semantic_analysis": {
+      "enabled": true,
+      "auto_classification": true,
+      "ontology": "WDO",
+      "max_depth": 3
+    },
+    "search": {
+      "default_type": "hybrid",
+      "max_results": 50,
+      "enable_suggestions": true,
+      "faceted_search": true
+    },
+    "visualization": {
+      "default_layout": "force_directed",
+      "max_nodes": 200,
+      "clustering": true,
+      "physics_enabled": true
+    },
+    "api": {
+      "rate_limiting": false,
+      "cors_enabled": true,
+      "documentation": true
+    }
+  },
+  "data_sources": [
+    {
+      "type": "local_files",
+      "path": "/data/uploads",
+      "supported_formats": ["py", "md", "json", "txt", "pdf"]
+    },
+    {
+      "type": "triplestore",
+      "endpoint": "http://localhost:7200",
+      "repository": "sbekms"
+    }
+  ],
+  "ontologies": {
+    "WDO": {
+      "namespace": "http://purl.example.org/web_dev_km_bfo#",
+      "description": "Web Development Ontology for knowledge classification"
+    }
+  },
+  "demo_data": {
+    "sample_files": ["demo_script.py", "project_readme.md", "config.json"],
+    "sample_queries": ["python", "documentation", "configuration"],
+    "expected_relationships": ["hasTag", "rdf:type", "dcterms:creator"]
+  }
+} 
