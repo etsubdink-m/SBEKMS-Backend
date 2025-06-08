@@ -81,15 +81,19 @@ make restart
 
 # 2. Verify services are running
 curl http://localhost:8000/health
+or
+on swagger ui: http://localhost:8000/docs
 ```
 
 ### **Demo 1: Document Upload & Semantic Annotation**
 
-**Goal**: Show how documents get automatically semantically annotated
+**Goal**: Show how documents get automatically semantically annotated using 3 test files
 
-#### **Step 1: Create Test Documents**
+Upload the 3 test files using the swagger UI using the 'Upload Assets' endpoint. `/api/assets/upload`
 
-Create these test files in your workspace:
+#### **Step 1: Test Documents**
+
+You can find test files in your workspace inside `demo_examples` folder:
 
 **File 1: `demo_script.py`**
 ```python
@@ -139,37 +143,15 @@ This project demonstrates the semantic knowledge management capabilities.
 }
 ```
 
-#### **Step 2: Upload Documents via API**
+#### **Step 2: Upload Documents via Swagger UI**
 
-```bash
-# Upload Python file
-curl -X POST "http://localhost:8000/api/v1/assets/upload" \
-  -F "file=@demo_script.py" \
-  -F "title=Demo Python Script" \
-  -F "description=Example Python script for testing" \
-  -F "tags=python,demo,testing" \
-  -F "author=Demo User"
+Use the 'Upload Assets' endpoint. `/api/assets/upload`
 
-# Upload Markdown file  
-curl -X POST "http://localhost:8000/api/v1/assets/upload" \
-  -F "file=@project_readme.md" \
-  -F "title=Project Documentation" \
-  -F "description=README documentation" \
-  -F "tags=documentation,readme,markdown" \
-  -F "author=Demo User"
-
-# Upload JSON config
-curl -X POST "http://localhost:8000/api/v1/assets/upload" \
-  -F "file=@config.json" \
-  -F "title=Project Configuration" \
-  -F "description=Project settings file" \
-  -F "tags=configuration,settings,json" \
-  -F "author=Demo User"
-```
+for the metadata, you can provide any metadata you want.
 
 #### **Step 3: Observe Semantic Annotation Results**
 
-Each upload response shows:
+Each upload response shows something like this:
 ```json
 {
   "message": "Asset 'demo_script.py' uploaded and annotated successfully",
@@ -197,55 +179,65 @@ Each upload response shows:
 
 #### **Step 1: Semantic Search by Type**
 
-```bash
-# Find all source code files
-curl -X POST "http://localhost:8000/api/v1/search/" \
-  -H "Content-Type: application/json" \
-  -d '{
+go to swagger ui: http://localhost:8000/docs
+and use the 'Search' endpoint. `/api/search/`
+
+use this query body:
+
+```
+{
     "query": "SourceCode",
     "search_type": "semantic",
     "limit": 10
-  }'
+}
 ```
 
-**Expected Result**: Returns `demo_script.py` because system understands it's source code, even though filename doesn't contain "source code"
+**Expected Result**: Returns `demo_script.py` because system understands it's source code, even though filename doesn't contain "SourceCode"
 
 
 
 #### **Step 2: Textual Search**
 
-```bash
-# Find files containing "python"
-curl -X POST "http://localhost:8000/api/v1/search/" \
-  -H "Content-Type: application/json" \
-  -d '{
+Again go to swagger ui: http://localhost:8000/docs
+and use the 'Search' endpoint. `/api/search/`
+
+use this query body:
+
+```
+{
     "query": "python", 
     "search_type": "textual",
     "limit": 10
-  }'
+}
 ```
 
-**Expected Result**: Returns both Python file and README (mentions Python)
+**Expected Result**: Returns both `demo_script.py` and `project_readme.md` because they both mention "python"
 
 #### **Step 3: Advanced Search with Filters**
 
-```bash
-# Find documentation files by a specific author
-curl -X POST "http://localhost:8000/api/v1/search/" \
-  -H "Content-Type: application/json" \
-  -d '{
+Again go to swagger ui: http://localhost:8000/docs
+and use the 'Search' endpoint. `/api/search/`
+
+use this query body:
+
+```
+{
     "query": "documentation",
     "search_type": "semantic",
     "file_types": ["md"],
     "author": "Demo User",
     "limit": 10
-  }'
+}
 ```
+
+**Expected Result**: Returns `project_readme.md` because it's a documentation file
 
 **Key Points to Highlight**:
 - Semantic search understands meaning beyond keywords
 - Can filter by multiple criteria simultaneously  
 - Results include relevance scoring and highlights
+
+
 
 Use these working search examples:
 
@@ -265,6 +257,7 @@ Use these working search examples:
 // ✅ Find by technology
 {"query": "python", "search_type": "semantic"}
 
+
 ### **Demo 3: Knowledge Graph Visualization**
 
 **Goal**: Show interactive knowledge graph exploration
@@ -275,6 +268,8 @@ Use these working search examples:
 2. Wait for graph to load (shows uploaded documents and their relationships)
 
 #### **Step 2: Explore Full Graph**
+
+Initially, the graph will be populated with Full graph mode.
 
 - **Action**: Select "Full Graph" mode
 - **Expected**: See all uploaded files as nodes connected to their semantic tags
