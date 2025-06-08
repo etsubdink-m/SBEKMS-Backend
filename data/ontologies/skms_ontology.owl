@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.example.org/web_dev_km_bfo#"
+     xml:base="http://purl.example.org/web_dev_km_bfo/"
+     xmlns:dc="http://purl.org/dc/terms/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+     xmlns:bfo="http://purl.obolibrary.org/obo/">
+
+    <owl:Ontology rdf:about="http://purl.example.org/web_dev_km_bfo/">
+        <owl:versionIRI rdf:resource="http://purl.example.org/web_dev_km_bfo/1.0.0"/>
+        <dc:title xml:lang="en">Web Development Knowledge Management Ontology (BFO Aligned)</dc:title>
+        <dc:description xml:lang="en">An ontology for managing explicit knowledge in web development projects, based on BFO 2020. It covers codebase artifacts, documentation, licenses, assets, and best practices from local repositories.</dc:description>
+        <dc:creator xml:lang="en">Gemini AI</dc:creator>
+        <rdfs:comment xml:lang="en">This ontology aligns with Basic Formal Ontology (BFO) 2020 (http://purl.obolibrary.org/obo/bfo/2020/bfo-core.owl) as its top-level ontology.</rdfs:comment>
+        <owl:imports rdf:resource="http://purl.obolibrary.org/obo/bfo/2020/bfo-core.owl"/> <!-- Optional: formally import BFO -->
+    </owl:Ontology>
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- Re-using SKOS and RDFS for standard annotations -->
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#definition"/>
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#example"/>
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#label"/>
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#comment"/>
+
+    <!-- Custom Annotation Properties -->
+    <owl:AnnotationProperty rdf:about="http://purl.example.org/web_dev_km_bfo#sourceRepositoryURL">
+        <rdfs:label xml:lang="en">source repository URL</rdfs:label>
+        <skos:definition xml:lang="en">An annotation property to specify the URL or path of the local repository from which an artifact was extracted.</skos:definition>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+    </owl:AnnotationProperty>
+
+    <owl:AnnotationProperty rdf:about="http://purl.example.org/web_dev_km_bfo#programmingLanguage">
+        <rdfs:label xml:lang="en">programming language</rdfs:label>
+        <skos:definition xml:lang="en">An annotation property to specify the programming language of a software code component or file.</skos:definition>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:AnnotationProperty>
+
+    <owl:AnnotationProperty rdf:about="http://purl.example.org/web_dev_km_bfo#fileExtension">
+        <rdfs:label xml:lang="en">file extension</rdfs:label>
+        <skos:definition xml:lang="en">An annotation property to specify the file extension of a Digital Information Carrier (e.g., 'java', 'py', 'md').</skos:definition>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:AnnotationProperty>
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent">
+        <rdfs:label xml:lang="en">bearer of information content</rdfs:label>
+        <skos:definition xml:lang="en">A relation between a Digital Information Carrier (e.g., a file) and the Information Content Entity it encodes or represents. For example, 'MyCode.py' (a DigitalInformationCarrier) is a bearerOfInformationContent for 'the Python script to process data' (an InformationContentEntity).</skos:definition>
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#informationContentBorneBy">
+        <rdfs:label xml:lang="en">information content borne by</rdfs:label>
+        <owl:inverseOf rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#hasSoftwareLicense">
+        <rdfs:label xml:lang="en">has software license</rdfs:label>
+        <skos:definition xml:lang="en">A relation between a Software Code Content and its associated License Content.</skos:definition>
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#LicenseContent"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#licenseForSoftware">
+        <rdfs:label xml:lang="en">license for software</rdfs:label>
+        <owl:inverseOf rdf:resource="http://purl.example.org/web_dev_km_bfo#hasSoftwareLicense"/>
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#LicenseContent"/>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#documents">
+        <rdfs:label xml:lang="en">documents</rdfs:label>
+        <skos:definition xml:lang="en">A relation between Documentation Content and the entity (e.g., Software Code Content, Web Development Project) it describes or explains.</skos:definition>
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#DocumentationContent"/>
+        <rdfs:range rdf:resource="http://purl.obolibrary.org/obo/BFO_0000001"/> <!-- bfo:entity -->
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#isDocumentedBy">
+        <rdfs:label xml:lang="en">is documented by</rdfs:label>
+        <owl:inverseOf rdf:resource="http://purl.example.org/web_dev_km_bfo#documents"/>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000001"/> <!-- bfo:entity -->
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#DocumentationContent"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#hasProjectOutput">
+        <rdfs:label xml:lang="en">has project output</rdfs:label>
+        <skos:definition xml:lang="en">A relation between a Web Development Project (a process) and an Information Content Entity that is its output. An output is a specific type of participant.</skos:definition>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000057"/> <!-- bfo:has participant -->
+        <rdfs:domain rdf:resource="http://purl.example.org/web_dev_km_bfo#WebDevelopmentProject"/>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#conformsToGuideline">
+        <rdfs:label xml:lang="en">conforms to guideline</rdfs:label>
+        <skos:definition xml:lang="en">A relation indicating that an entity (e.g., Software Code Content, a Web Development Project process) adheres to a Best Practice Guideline Content.</skos:definition>
+        <rdfs:domain rdf:resource="http://purl.obolibrary.org/obo/BFO_0000001"/> <!-- bfo:entity -->
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#BestPracticeGuidelineContent"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://purl.example.org/web_dev_km_bfo#hasCodeComponent">
+        <rdfs:label xml:lang="en">has code component</rdfs:label>
+        <skos:definition xml:lang="en">A relation indicating that a Software Module Content or Class Definition Content has a smaller unit of Software Code Content as a part.</skos:definition>
+        <rdfs:subPropertyOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000178"/> <!-- bfo:has continuant part -->
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.example.org/web_dev_km_bfo#SoftwareModuleContent"/>
+                    <rdf:Description rdf:about="http://purl.example.org/web_dev_km_bfo#ClassDefinitionContent"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+    </owl:ObjectProperty>
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- BFO:0000015 process -->
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#WebDevelopmentProject">
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000015"/>
+        <rdfs:label xml:lang="en">Web Development Project</rdfs:label>
+        <skos:definition xml:lang="en">A Web Development Project is a bfo:process that encompasses all activities, planning, and execution involved in creating, deploying, or maintaining a web-based software application or system.</skos:definition>
+        <skos:example xml:lang="en">The development of a new e-commerce website from Q1 to Q4 2024.</skos:example>
+    </owl:Class>
+
+    <!-- BFO:0000031 generically dependent continuant -->
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#InformationContentEntity">
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000031"/>
+        <rdfs:label xml:lang="en">Information Content Entity</rdfs:label>
+        <skos:definition xml:lang="en">An Information Content Entity is a bfo:generically dependent continuant that is dependent on some information bearer (physical or digital) for its concretization and is about something.</skos:definition>
+        <skos:example xml:lang="en">The text of a novel; the sequence of amino-acids in a protein; the blueprint of a machine; the meaning conveyed by a specific passage of source code.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">Software Code Content</rdfs:label>
+        <skos:definition xml:lang="en">Software Code Content is an Information Content Entity which is a set of instructions or declarations written in a programming language, intended to be executed by a computer or interpreted by a developer.</skos:definition>
+        <skos:example xml:lang="en">The source code of a Python function; a CSS stylesheet's rules; an SQL query.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#ClassDefinitionContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+        <rdfs:label xml:lang="en">Class Definition Content</rdfs:label>
+        <skos:definition xml:lang="en">Class Definition Content is a Software Code Content which is the specification of a class, a blueprint for creating objects, defining data attributes and methods (functions).</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#hasCodeComponent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#FunctionDefinitionContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#hasCodeComponent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#AttributeDeclarationContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#FunctionDefinitionContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+        <rdfs:label xml:lang="en">Function Definition Content</rdfs:label>
+        <skos:definition xml:lang="en">Function Definition Content is a Software Code Content which is the specification of a function, method, or subroutine; a sequence of statements that performs a specific task.</skos:definition>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#AttributeDeclarationContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+        <rdfs:label xml:lang="en">Attribute Declaration Content</rdfs:label>
+        <skos:definition xml:lang="en">Attribute Declaration Content is a Software Code Content which is the declaration of an attribute, property, variable, or field within a class, data structure, or module.</skos:definition>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#SoftwareModuleContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+        <rdfs:label xml:lang="en">Software Module Content</rdfs:label>
+        <skos:definition xml:lang="en">Software Module Content is a Software Code Content which is a collection of routines (functions, procedures) and data structures that are grouped together to perform a particular task or implement a particular abstract data type, often organized into a single conceptual unit.</skos:definition>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#DocumentationContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">Documentation Content</rdfs:label>
+        <skos:definition xml:lang="en">Documentation Content is an Information Content Entity which provides explanatory information, instructions, or details about a system, software, process, or other entity.</skos:definition>
+        <skos:example xml:lang="en">API reference material; user guides; code comments explaining logic; architectural diagrams' descriptive text.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#LicenseContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">License Content</rdfs:label>
+        <skos:definition xml:lang="en">License Content is an Information Content Entity which specifies the terms and conditions under which software or other creative work may be used, modified, and distributed.</skos:definition>
+        <skos:example xml:lang="en">The text of the MIT License; the specific clauses of a GPLv3 license document.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#ReadmeContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DocumentationContent"/>
+        <rdfs:label xml:lang="en">Readme Content</rdfs:label>
+        <skos:definition xml:lang="en">Readme Content is a Documentation Content which provides essential introductory information about a software project, typically including setup instructions, usage examples, and project overview.</skos:definition>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#BestPracticeGuidelineContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">Best Practice Guideline Content</rdfs:label>
+        <skos:definition xml:lang="en">Best Practice Guideline Content is an Information Content Entity which describes recommended methods, techniques, or principles for achieving a specific goal or performing a task effectively and consistently in web development.</skos:definition>
+        <skos:example xml:lang="en">A document outlining secure coding practices; guidelines for writing maintainable CSS; a style guide for commit messages.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#DigitalAssetSpecification">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">Digital Asset Specification</rdfs:label>
+        <skos:definition xml:lang="en">Digital Asset Specification is an Information Content Entity which defines the characteristics, design, plan, or descriptive metadata for a digital asset used in a web development project.</skos:definition>
+        <skos:example xml:lang="en">A wireframe for a webpage layout; the color palette definition for a website; a storyboard for an animation; metadata describing an image file's subject and resolution.</skos:example>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#ConfigurationSettingContent">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#InformationContentEntity"/>
+        <rdfs:label xml:lang="en">Configuration Setting Content</rdfs:label>
+        <skos:definition xml:lang="en">Configuration Setting Content is an Information Content Entity which specifies parameters, options, or settings that control the behavior of a software application, system, or component.</skos:definition>
+        <skos:example xml:lang="en">A database connection string; a list of enabled features; a port number setting.</skos:example>
+    </owl:Class>
+
+
+    <!-- BFO:0000031 generically dependent continuant (for digital files as information artifacts) -->
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier">
+        <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/BFO_0000031"/>
+        <rdfs:label xml:lang="en">Digital Information Carrier</rdfs:label>
+        <skos:definition xml:lang="en">A Digital Information Carrier is a bfo:generically dependent continuant which is a digital object, typically a file existing in a file system, that encodes or bears some Information Content Entity. It is a pattern of bits that can be copied.</skos:definition>
+        <skos:example xml:lang="en">A specific .java file on a hard drive; an .mp3 audio file; a .png image file.</skos:example>
+        <rdfs:comment xml:lang="en">While the physical bits on a storage medium are material, the 'file' as a specific sequence of bits that can be copied and transferred is treated here as a GDC, consistent with IAO and other BFO-based ontologies for information artifacts.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#SourceCodeFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:label xml:lang="en">Source Code File</rdfs:label>
+        <skos:definition xml:lang="en">A Source Code File is a Digital Information Carrier which primarily bears Software Code Content.</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#SoftwareCodeContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#DocumentationFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:label xml:lang="en">Documentation File</rdfs:label>
+        <skos:definition xml:lang="en">A Documentation File is a Digital Information Carrier which primarily bears Documentation Content.</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#DocumentationContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#LicenseFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:label xml:lang="en">License File</rdfs:label>
+        <skos:definition xml:lang="en">A License File is a Digital Information Carrier which primarily bears License Content.</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#LicenseContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#ReadmeFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DocumentationFile"/>
+        <rdfs:label xml:lang="en">Readme File</rdfs:label>
+        <skos:definition xml:lang="en">A Readme File is a Documentation File which bears Readme Content.</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:allValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#ReadmeContent"/> <!-- Changed to allValuesFrom to be more precise for a ReadmeFile -->
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#AssetFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:label xml:lang="en">Asset File</rdfs:label>
+        <skos:definition xml:lang="en">An Asset File is a Digital Information Carrier which bears the content or specification of a digital asset, such as an image, video, audio, or design file.</skos:definition>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalAssetSpecification"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.example.org/web_dev_km_bfo#ConfigurationFile">
+        <rdfs:subClassOf rdf:resource="http://purl.example.org/web_dev_km_bfo#DigitalInformationCarrier"/>
+        <rdfs:label xml:lang="en">Configuration File</rdfs:label>
+        <skos:definition xml:lang="en">A Configuration File is a Digital Information Carrier which bears Configuration Setting Content.</skos:definition>
+         <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.example.org/web_dev_km_bfo#bearerOfInformationContent"/>
+                <owl:someValuesFrom rdf:resource="http://purl.example.org/web_dev_km_bfo#ConfigurationSettingContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+</rdf:RDF>

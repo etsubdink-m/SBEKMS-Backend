@@ -1,0 +1,31 @@
+services:
+  graphdb:
+    image: ontotext/graphdb:10.0.2
+    container_name: sbekms-graphdb
+    ports:
+      - "7200:7200"
+    environment:
+      - GDB_HEAP_SIZE=2g
+    volumes:
+      - graphdb_data:/opt/graphdb/home
+    restart: unless-stopped
+
+  # FastAPI service (optional - can run locally)
+  api:
+    build: .
+    container_name: sbekms-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - TRIPLESTORE_URL=http://graphdb:7200
+    depends_on:
+      - graphdb
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app
+    restart: unless-stopped
+
+volumes:
+  graphdb_data: 
